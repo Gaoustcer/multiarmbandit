@@ -1,11 +1,14 @@
 from torch.distributions import normal
+from torch.distributions import Categorical
 from random import random
 from random import randint
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
-writer = SummaryWriter('./log/randomchoice')
+from torch.nn import Softmax
+import torch
+writer = SummaryWriter('./log/softmaxchoice')
 K = 10
-testtimes = 512
+testtimes = 32
 
 epsilon = 0.1
 ITERTIME = 128
@@ -48,10 +51,35 @@ def epsilon_algorithm():
     decisionlist[action]['times'] += 1
     decisionlist[action]['averagereward'] = decisionlist[action]['reward'] / decisionlist[action]['times']
     return reward
+def softmax_algorithm():
+    if random() < epsilon:
+        action = randint(0,K-1)
+    else:
+        # action = -1
+        averagereward = []
+        for i in range(K):
+            averagereward.append(decisionlist[i]['averagereward'])
+        averagereward = torch.tensor(averagereward).to(torch.float32)
+        problayer = Softmax()
+        prob = problayer(averagereward)
+        prob = Categorical(prob)
+        action = prob.sample().item()
+        # for i in range(K):
+        #     if averagereward < decisionlist[i]['averagereward']:
+        #         averagereward = decisionlist[i]['averagereward']
+        #         action = i
+        # pass
+    reward = randomfunctionlist[action].sample()
+    decisionlist[action]['reward'] += reward
+
+    decisionlist[action]['times'] += 1
+    decisionlist[action]['averagereward'] = decisionlist[action]['reward'] / decisionlist[action]['times']
+    return reward    
+
     pass
 if __name__ == "__main__":
     for i in tqdm(range(ITERTIME)):
         reward = 0
         for _ in range(testtimes):
-            reward += randomchoice()
+            reward += softmax_algorithm()
         writer.add_scalar('reward',reward/testtimes,i)
