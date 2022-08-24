@@ -30,8 +30,24 @@ def randomchoice():
     return randomfunctionlist[index].sample()
 decisionlist = {}
 for i in range(K):
-    decisionlist[i] = {'reward':0,'times':1}
-def epsilon():
+    decisionlist[i] = {'reward':0,'times':1,'averagereward':0}
+def epsilon_algorithm():
+    if random() < epsilon:
+        action = randint(0,K-1)
+    else:
+        action = -1
+        averagereward = -1
+        for i in range(K):
+            if averagereward < decisionlist[i]['averagereward']:
+                averagereward = decisionlist[i]['averagereward']
+                action = i
+        pass
+    reward = randomfunctionlist[action].sample()
+    decisionlist[action]['reward'] += reward
+
+    decisionlist[action]['times'] += 1
+    decisionlist[action]['averagereward'] = decisionlist[action]['reward'] / decisionlist[action]['times']
+    return reward
     pass
 if __name__ == "__main__":
     for i in tqdm(range(ITERTIME)):
